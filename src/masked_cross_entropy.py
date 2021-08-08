@@ -10,7 +10,7 @@ def sequence_mask(sequence_length, max_len=None):
     seq_range_expand = seq_range.unsqueeze(0).expand(batch_size, max_len)
     if sequence_length.is_cuda:
         seq_range_expand = seq_range_expand.cuda()
-    seq_length_expand = (sequence_length.unsqueeze(1).expand_as(seq_range_expand))
+    seq_length_expand = sequence_length.unsqueeze(1).expand_as(seq_range_expand)
     return seq_range_expand < seq_length_expand
 
 
@@ -42,7 +42,7 @@ def masked_cross_entropy(logits, target, length):
     target_flat = target.view(-1, 1)
     # losses_flat: (batch * max_len, 1)
     # print (target_flat)
-    losses_flat = -torch.gather(log_probs_flat, dim=1, index=target_flat)
+    losses_flat = -torch.gather(log_probs_flat, dim=1, index=target_flat.long())
     # print (losses_flat)
     # losses: (batch, max_len)
     losses = losses_flat.view(*target.size())
@@ -52,6 +52,7 @@ def masked_cross_entropy(logits, target, length):
     loss = losses.sum() / length.float().sum()
     # if loss.item() > 10:
     #     print(losses, target)
+
     return loss
 
 
@@ -96,4 +97,3 @@ def masked_cross_entropy_without_logit(logits, target, length):
     # if loss.item() > 10:
     #     print(losses, target)
     return loss
-
